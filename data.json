@@ -266,8 +266,8 @@
         "F": {
           "boards": {
             "ISL": [
-              "middle",
-              "middle"
+              "front",
+              "rear"
             ]
           }
         },
