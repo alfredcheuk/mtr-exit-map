@@ -86,6 +86,17 @@
      :has(+ .search-trigger) catches the row immediately before search-trigger. */
   .row:has(+ .search-trigger) { border-bottom: none; }
   .row:active { transform: scale(0.99); transition: transform 0.1s; }
+
+  /* Hover states — only on devices with real hover (mouse/trackpad), not touch */
+  @media (hover: hover) {
+    .row:hover { background: color-mix(in srgb, var(--fg) 4%, transparent); }
+    .chip:hover { filter: brightness(1.08); }
+    .back-row:hover .back-arrow,
+    .back-only:hover { color: var(--fg); }
+    .search-trigger:hover { color: var(--fg); }
+    .search-bar .cancel:hover { color: var(--fg); }
+    .search-bar .clear-x:hover { color: var(--fg); }
+  }
   .station-row .name { flex: 1; }
   .station-row .dot {
     width: 7px; height: 7px;
