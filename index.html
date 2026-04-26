@@ -484,13 +484,10 @@ function validateData(d) {
 // ---------- nav ----------
 
 function transitionTo(updates) {
-  const apply = () => {
-    Object.assign(state, updates);
-    render();
-  };
-  if (document.startViewTransition) document.startViewTransition(apply);
-  else apply();
+  Object.assign(state, updates);
   syncUrl();
+  if (document.startViewTransition) document.startViewTransition(render);
+  else render();
 }
 
 function syncUrl() {
