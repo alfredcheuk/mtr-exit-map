@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0073BD">
+<title>MTR Exit</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MTR Exit">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --muted: #9ca3af;
+    --hairline: #f0f0f0;
+    --highlight: #fef3c7;
+    --chip-text: #ffffff;
+    --pdf-cue: #b45309;
+    --default-accent: #0073BD;
+    /* --line-XXX vars are injected at runtime from data.json */
+    --accent: var(--default-accent);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f5f5f5;
+      --muted: #9ca3af;
+      --hairline: #1f1f1f;
+      --highlight: #42360e;
+      --chip-text: #0a0a0a;
+      --pdf-cue: #fbbf24;
+      --default-accent: #4FA8E0;
+    }
+  }
+  body {
+    font-family: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 32px 22px;
+    position: relative;
+  }
+  .top-mark, .station-line-tag, .result-sub, .search-context {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .top-mark { letter-spacing: 0.14em; margin-bottom: 36px; }
+  .line-tone { color: var(--accent); }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--hairline);
+    border-left: 0; border-right: 0; border-top: 0;
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    color: var(--fg);
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+  }
+  .row:last-of-type { border-bottom: none; }
+  .row:active { transform: scale(0.99); transition: transform 0.1s; }
+  .station-row .name { flex: 1; }
+  .station-row .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--default-accent);
+  }
+  .station-row .chips { display: flex; gap: 6px; }
+  .chip {
+    color: var(--chip-text);
+    background: var(--default-accent);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    position: relative;
+  }
+  /* Invisible vertical hit-area expansion to reach 44px without changing visual size.
+     Horizontal extension would overlap adjacent chips, so vertical only. */
+  .chip::after {
+    content: "";
+    position: absolute;
+    top: -11px; bottom: -11px;
+    left: 0; right: 0;
+  }
+  .chip:active { transform: scale(0.95); transition: transform 0.1s; }
+  .back-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* enlarged tap area: 14+22+14 = 50px tall, ≥44px ✓ */
+    padding: 14px 0;
+    margin-bottom: 14px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    text-align: left;
+  }
+  .back-arrow {
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .back-only {
+    color: var(--accent);
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    background: none; border: 0;
+    padding: 12px 12px 12px 0;
+    margin-left: 0;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .result-title {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .result-sub { margin-bottom: 32px; }
+  .result-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .result-row:last-of-type { border-bottom: none; }
+  .result-row .dir {
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .result-row .action {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .result-row .car-hint {
+    font-size: 17px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .pdf-only-cue {
+    font-size: 11px;
+    color: var(--pdf-cue);
+    margin-top: 4px;
+  }
+  .search-trigger {
+    position: fixed;
+    bottom: 22px; right: 12px;
+    /* enlarged tap area: 14+11+14 = 39 vertical → bumped to 16 to hit 43, plus glyph adds height */
+    background: none; border: 0; padding: 16px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .search-trigger .glyph {
+    font-size: 13px;
+    margin-right: 6px;
+    position: relative; top: 1px;
+  }
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--fg);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  .search-bar .glyph {
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .search-bar input {
+    flex: 1;
+    border: 0;
+    outline: 0;
+    background: none;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--fg);
+    padding: 0;
+    min-width: 0;
+  }
+  .search-bar .clear-x {
+    color: var(--muted);
+    font-size: 18px;
+    background: none; border: 0;
+    /* tap area: 12+18+12 = 42 vertical, 12+~16+12 = 40 horizontal — close to 44 */
+    padding: 12px;
+    margin: -12px 0;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .search-bar .cancel {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 500;
+    background: none; border: 0;
+    padding: 14px 4px;
+    margin: -14px -4px;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .search-context { margin-bottom: 4px; }
+  .match-hl {
+    background: var(--highlight);
+    color: var(--fg);
+    padding: 0 1px;
+  }
+  .empty {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .empty .hint {
+    font-size: 12px;
+    color: var(--muted);
+    opacity: 0.65;
+    margin-top: 8px;
+  }
+  .data-error {
+    padding: 32px 0;
+    color: var(--pdf-cue);
+    font-size: 13px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    line-height: 1.6;
+  }
+  .data-error h3 {
+    font-family: inherit;
+    font-size: 15px;
+    margin: 0 0 12px;
+    color: var(--fg);
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 180ms;
+  }
+
+  /* Keyboard focus styling — visible ring on tabbed elements only */
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Honor user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0ms;
+    }
+    .row:active, .chip:active {
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app"><div class="top-mark" style="margin-top: 4px;">Loading…</div></div>
+<script>
+const state = {
+  screen: 'stations',
+  station: null,   // station name (string)
+  line: null,      // line code (string)
+  landmark: null,  // landmark name (string)
+  searching: false,
+  query: ''
+};
+let DATA = null;
+
+// ---------- helpers ----------
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function hl(text, q) {
+  if (!q) return escapeHtml(text);
+  const lower = text.toLowerCase();
+  const ql = q.toLowerCase();
+  const idx = lower.indexOf(ql);
+  if (idx === -1) return escapeHtml(text);
+  return escapeHtml(text.slice(0, idx))
+    + '<span class="match-hl">' + escapeHtml(text.slice(idx, idx + q.length)) + '</span>'
+    + escapeHtml(text.slice(idx + q.length));
+}
+
+// ---------- line config ----------
+
+function lineName(code) {
+  return (DATA && DATA.lines && DATA.lines[code] && DATA.lines[code].name) || code;
+}
+
+function lineDirections(code) {
+  return (DATA && DATA.lines && DATA.lines[code] && DATA.lines[code].directions) || [];
+}
+
+function injectLineStyles() {
+  const lines = (DATA && DATA.lines) || {};
+  const codes = Object.keys(lines);
+  function declsFor(mode) {
+    return codes.map(code => {
+      const c = lines[code].color;
+      if (!c || typeof c !== 'object') return null;
+      const v = c[mode] || c.light;
+      return v ? '  --line-' + code + ': ' + v + ';' : null;
+    }).filter(Boolean).join('\n');
+  }
+  const css =
+    ':root {\n' + declsFor('light') + '\n}\n' +
+    '@media (prefers-color-scheme: dark) {\n' +
+    '  :root {\n' + declsFor('dark') + '\n  }\n' +
+    '}';
+  let style = document.getElementById('line-colors');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'line-colors';
+    document.head.appendChild(style);
+  }
+  style.textContent = css;
+}
+
+function setAccentForLine(lineCode) {
+  if (lineCode) {
+    document.documentElement.style.setProperty('--accent', 'var(--line-' + lineCode + ')');
+  } else {
+    document.documentElement.style.setProperty('--accent', 'var(--default-accent)');
+  }
+}
+
+// ---------- data lookups (nested-per-station) ----------
+
+function getStation(name) {
+  return DATA.stations.find(s => s.name === name);
+}
+
+function getLandmarksForStation(stationName) {
+  const s = getStation(stationName);
+  return s ? (s.landmarks || []).map(l => l.name) : [];
+}
+
+function normalizeBoard(b) {
+  if (b == null) return null;
+  if (typeof b === 'string') return { position: b, car_hint: null, verified_at: null };
+  return { position: b.position, car_hint: b.car_hint || null, verified_at: b.verified_at || null };
+}
+
+function getResultsFor(stationName, lineCode, landmarkName) {
+  const station = getStation(stationName);
+  if (!station) return null;
+  const lm = (station.landmarks || []).find(l => l.name === landmarkName);
+  if (!lm) return null;
+  if (!lm.exit) {
+    return { landmark: landmarkName, station: stationName, line: lineCode, exit: null, rows: [] };
+  }
+  const exitConfig = (station.exits || {})[lm.exit] || null;
+  const boards = exitConfig && exitConfig.boards && exitConfig.boards[lineCode];
+  const directions = lineDirections(lineCode);
+  let rows = [];
+  if (Array.isArray(boards)) {
+    rows = boards.map((b, i) => {
+      const norm = normalizeBoard(b);
+      if (!norm) return null;
+      return {
+        direction: directions[i] || ('Direction ' + (i + 1)),
+        position: norm.position,
+        carHint: norm.car_hint,
+        verified: !!norm.verified_at
+      };
+    }).filter(Boolean);
+  }
+  return { landmark: landmarkName, station: stationName, line: lineCode, exit: lm.exit, rows };
+}
+
+// ---------- validation ----------
+
+function validateData(d) {
+  const errs = [];
+  if (!d || typeof d !== 'object') { errs.push('data is not an object'); return errs; }
+  if (!d.lines || typeof d.lines !== 'object') errs.push('missing or invalid `lines{}`');
+  if (!Array.isArray(d.stations)) errs.push('missing or invalid `stations[]`');
+  Object.entries(d.lines || {}).forEach(([code, cfg]) => {
+    if (!cfg.name) errs.push('lines["' + code + '"] missing `name`');
+    if (!cfg.color || typeof cfg.color !== 'object' || !cfg.color.light)
+      errs.push('lines["' + code + '"] missing `color.{light,dark}`');
+    if (!Array.isArray(cfg.directions) || cfg.directions.length === 0)
+      errs.push('lines["' + code + '"] missing `directions[]`');
+  });
+  (d.stations || []).forEach((s, i) => {
+    const at = 'stations[' + i + ']';
+    if (!s.name) errs.push(at + ' missing `name`');
+    (s.lines || []).forEach(line => {
+      if (!d.lines || !d.lines[line]) errs.push(at + '.lines references undefined line "' + line + '"');
+    });
+    (s.landmarks || []).forEach((lm, j) => {
+      const lat = at + '.landmarks[' + j + ']';
+      if (!lm.name) errs.push(lat + ' missing `name`');
+      if (lm.exit && !(s.exits || {})[lm.exit])
+        errs.push(lat + ' references undefined exit "' + lm.exit + '"');
+    });
+    Object.entries(s.exits || {}).forEach(([code, exit]) => {
+      const eat = at + '.exits["' + code + '"]';
+      Object.entries((exit && exit.boards) || {}).forEach(([line, boards]) => {
+        if (!d.lines || !d.lines[line]) {
+          errs.push(eat + '.boards references undefined line "' + line + '"');
+          return;
+        }
+        const expected = d.lines[line].directions.length;
+        if (!Array.isArray(boards) || boards.length !== expected) {
+          errs.push(eat + '.boards["' + line + '"] length ' +
+            (Array.isArray(boards) ? boards.length : 'n/a') +
+            ' must equal lines["' + line + '"].directions.length (' + expected + ')');
+        }
+      });
+    });
+  });
+  return errs;
+}
+
+// ---------- nav ----------
+
+function transitionTo(updates) {
+  const apply = () => {
+    Object.assign(state, updates);
+    render();
+  };
+  if (document.startViewTransition) document.startViewTransition(apply);
+  else apply();
+  syncUrl();
+}
+
+function syncUrl() {
+  const params = new URLSearchParams();
+  if (state.screen === 'landmarks' || state.screen === 'result') {
+    params.set('s', state.station);
+    params.set('l', state.line);
+  }
+  if (state.screen === 'result') params.set('lm', state.landmark);
+  const newUrl = params.toString() ? '?' + params : './';
+  if (location.search !== ('?' + params)) {
+    history.pushState(null, '', newUrl);
+  }
+}
+
+function readUrl() {
+  const params = new URLSearchParams(location.search);
+  const s = params.get('s'), l = params.get('l'), lm = params.get('lm');
+  if (lm && s && l) return { screen: 'result', station: s, line: l, landmark: lm };
+  if (s && l) return { screen: 'landmarks', station: s, line: l, landmark: null };
+  return { screen: 'stations', station: null, line: null, landmark: null };
+}
+
+// ---------- render ----------
+
+function render() {
+  setAccentForLine(state.line);
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  if (state.searching) {
+    if (state.screen === 'stations') return renderStationsSearch(app);
+    if (state.screen === 'landmarks') return renderLandmarksSearch(app);
+  }
+  if (state.screen === 'stations') return renderStations(app);
+  if (state.screen === 'landmarks') return renderLandmarks(app);
+  if (state.screen === 'result') return renderResult(app);
+}
+
+function renderStations(root) {
+  root.insertAdjacentHTML('beforeend', '<div class="top-mark">MTR Exit Map</div>');
+  DATA.stations.forEach(s => root.appendChild(stationTile(s)));
+  root.appendChild(searchTrigger());
+}
+
+function stationTile(s, q) {
+  q = q || '';
+  if (s.lines.length > 1) {
+    const tile = document.createElement('div');
+    tile.className = 'row station-row';
+    tile.innerHTML = '<span class="name">' + hl(s.name, q) + '</span>';
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    s.lines.forEach(line => {
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.style.background = 'var(--line-' + line + ')';
+      chip.textContent = line;
+      chip.setAttribute('aria-label', s.name + ' via ' + lineName(line));
+      chip.onclick = (e) => {
+        e.stopPropagation();
+        transitionTo({ screen: 'landmarks', station: s.name, line: line, searching: false, query: '' });
+      };
+      chips.appendChild(chip);
+    });
+    tile.appendChild(chips);
+    return tile;
+  }
+  const tile = document.createElement('button');
+  tile.className = 'row station-row';
+  const dotColor = s.lines[0] ? ('var(--line-' + s.lines[0] + ')') : 'var(--default-accent)';
+  tile.innerHTML = '<span class="name">' + hl(s.name, q) + '</span>' +
+    '<span class="dot" aria-hidden="true" style="background: ' + dotColor + ';"></span>';
+  tile.onclick = () => transitionTo({ screen: 'landmarks', station: s.name, line: s.lines[0], searching: false, query: '' });
+  return tile;
+}
+
+function lineToneInline(code, label) {
+  return '<span class="line-tone" style="color: var(--line-' + code + ');">' + escapeHtml(label) + '</span>';
+}
+
+function renderLandmarks(root) {
+  const back = document.createElement('button');
+  back.className = 'back-row';
+  back.setAttribute('aria-label', 'Back to stations');
+  back.innerHTML = '<span class="back-arrow" aria-hidden="true">←</span><span class="station-line-tag">' +
+    escapeHtml(state.station.toUpperCase()) + ' · ' +
+    lineToneInline(state.line, lineName(state.line).toUpperCase()) +
+    '</span>';
+  back.onclick = () => transitionTo({ screen: 'stations', station: null, line: null });
+  root.appendChild(back);
+  const landmarks = getLandmarksForStation(state.station);
+  if (landmarks.length === 0) {
+    root.insertAdjacentHTML('beforeend',
+      '<div class="empty">No landmarks yet for this station.<div class="hint">Add entries to <code>stations[].landmarks</code> in data.json.</div></div>');
+  } else {
+    landmarks.forEach(l => root.appendChild(landmarkRow(l)));
+  }
+  root.appendChild(searchTrigger());
+}
+
+function landmarkRow(l, q) {
+  q = q || '';
+  const row = document.createElement('button');
+  row.className = 'row';
+  row.innerHTML = hl(l, q);
+  row.onclick = () => transitionTo({ screen: 'result', landmark: l, searching: false, query: '' });
+  return row;
+}
+
+function renderResult(root) {
+  const back = document.createElement('button');
+  back.className = 'back-only';
+  back.setAttribute('aria-label', 'Back to landmarks');
+  back.textContent = '←';
+  back.onclick = () => transitionTo({ screen: 'landmarks', landmark: null });
+  root.appendChild(back);
+  const result = getResultsFor(state.station, state.line, state.landmark);
+  if (!result) {
+    root.insertAdjacentHTML('beforeend',
+      '<div class="empty">No data yet for this entry.<div class="hint">Add the landmark to <code>stations[].landmarks</code>.</div></div>');
+    return;
+  }
+  if (!result.exit) {
+    root.insertAdjacentHTML('beforeend',
+      '<div class="result-title">' + escapeHtml(result.landmark) + '</div>' +
+      '<div class="result-sub">' + escapeHtml(result.station.toUpperCase()) + ' · ' +
+      lineToneInline(result.line, lineName(result.line).toUpperCase()) + '</div>' +
+      '<div class="empty">No exit assigned yet for this landmark.<div class="hint">Set the <code>exit</code> field in <code>stations[].landmarks</code>.</div></div>');
+    return;
+  }
+  root.insertAdjacentHTML('beforeend',
+    '<div class="result-title">' + escapeHtml(result.landmark) + '</div>' +
+    '<div class="result-sub">' + escapeHtml(result.station.toUpperCase()) + ' · ' +
+    lineToneInline(result.line, lineName(result.line).toUpperCase()) +
+    ' · EXIT ' + escapeHtml(result.exit) + '</div>'
+  );
+  if (result.rows.length === 0) {
+    root.insertAdjacentHTML('beforeend',
+      '<div class="empty">No boarding positions yet for this exit.<div class="hint">Add a <code>boards.' + result.line + '</code> array in <code>stations[].exits["' + result.exit + '"]</code>.</div></div>');
+    return;
+  }
+  result.rows.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    const pos = r.position.charAt(0).toUpperCase() + r.position.slice(1);
+    row.innerHTML =
+      '<div><div class="dir">→ ' + escapeHtml(r.direction) + '</div>' +
+      (r.verified ? '' : '<div class="pdf-only-cue">⚠ pdf-only</div>') + '</div>' +
+      '<div class="action">' + escapeHtml(pos) +
+      (r.carHint ? '<span class="car-hint">(car ' + r.carHint + ')</span>' : '') + '</div>';
+    root.appendChild(row);
+  });
+}
+
+function searchTrigger() {
+  const btn = document.createElement('button');
+  btn.className = 'search-trigger';
+  btn.setAttribute('aria-label', 'Open search');
+  btn.innerHTML = '<span class="glyph" aria-hidden="true">⌕</span>Search';
+  btn.onclick = () => transitionTo({ searching: true, query: '' });
+  return btn;
+}
+
+function makeSearchBar() {
+  const bar = document.createElement('div');
+  bar.className = 'search-bar';
+  bar.innerHTML =
+    '<span class="glyph" aria-hidden="true">⌕</span>' +
+    '<input type="text" aria-label="Search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="' + escapeHtml(state.query) + '">' +
+    '<button class="clear-x" type="button" aria-label="Clear search">×</button>' +
+    '<button class="cancel" type="button">Cancel</button>';
+  bar.querySelector('.clear-x').onclick = () => {
+    state.query = '';
+    const inp = bar.querySelector('input');
+    inp.value = '';
+    inp.dispatchEvent(new Event('input'));
+    inp.focus();
+  };
+  bar.querySelector('.cancel').onclick = () => transitionTo({ searching: false, query: '' });
+  return bar;
+}
+
+function renderStationsSearch(root) {
+  const bar = makeSearchBar();
+  root.appendChild(bar);
+  const ctx = document.createElement('div');
+  ctx.className = 'search-context';
+  root.appendChild(ctx);
+  const list = document.createElement('div');
+  root.appendChild(list);
+  function update() {
+    const q = state.query;
+    const matches = DATA.stations.filter(s => {
+      if (s.name.toLowerCase().includes(q.toLowerCase())) return true;
+      return s.lines.some(line => line.toLowerCase().includes(q.toLowerCase()));
+    });
+    ctx.textContent = 'Stations · ' + matches.length + ' ' + (matches.length === 1 ? 'match' : 'matches');
+    list.innerHTML = '';
+    if (matches.length === 0) {
+      list.innerHTML = '<div class="empty">No stations match.<div class="hint">Try a partial name or line code.</div></div>';
+    } else {
+      matches.forEach(s => list.appendChild(stationTile(s, q)));
+    }
+  }
+  bar.querySelector('input').addEventListener('input', (e) => {
+    state.query = e.target.value;
+    update();
+  });
+  update();
+  setTimeout(() => bar.querySelector('input').focus(), 0);
+}
+
+function renderLandmarksSearch(root) {
+  const bar = makeSearchBar();
+  root.appendChild(bar);
+  const ctx = document.createElement('div');
+  ctx.className = 'search-context';
+  root.appendChild(ctx);
+  const list = document.createElement('div');
+  root.appendChild(list);
+  function update() {
+    const q = state.query;
+    const all = getLandmarksForStation(state.station);
+    const matches = all.filter(l => l.toLowerCase().includes(q.toLowerCase()));
+    ctx.innerHTML = escapeHtml(state.station.toUpperCase()) + ' · ' +
+      lineToneInline(state.line, lineName(state.line).toUpperCase()) + ' · ' +
+      matches.length + ' ' + (matches.length === 1 ? 'match' : 'matches');
+    list.innerHTML = '';
+    if (matches.length === 0) {
+      list.innerHTML = '<div class="empty">No landmarks match.<div class="hint">Try a partial street, building, or shop name.</div></div>';
+    } else {
+      matches.forEach(l => list.appendChild(landmarkRow(l, q)));
+    }
+  }
+  bar.querySelector('input').addEventListener('input', (e) => {
+    state.query = e.target.value;
+    update();
+  });
+  update();
+  setTimeout(() => bar.querySelector('input').focus(), 0);
+}
+
+window.addEventListener('popstate', () => {
+  Object.assign(state, { searching: false, query: '' }, readUrl());
+  if (document.startViewTransition) document.startViewTransition(() => render());
+  else render();
+});
+
+async function init() {
+  try {
+    DATA = await fetch('./data.json').then(r => r.json());
+  } catch (e) {
+    document.getElementById('app').innerHTML =
+      '<div class="empty">Failed to load data.<div class="hint">Check that data.json is reachable.</div></div>';
+    return;
+  }
+  const errs = validateData(DATA);
+  if (errs.length) {
+    document.getElementById('app').innerHTML =
+      '<div class="data-error"><h3>data.json failed validation</h3>' +
+      errs.map(e => '· ' + escapeHtml(e)).join('<br>') +
+      '</div>';
+    return;
+  }
+  injectLineStyles();
+  Object.assign(state, readUrl());
+  render();
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+init();
+</script>
+</body>
+</html>

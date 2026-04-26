@@ -1,0 +1,14 @@
+.DS_Store
+node_modules/
+.vscode/
+.idea/
+
+# Local PDF sources from MTR (not deployed)
+sources/
+
+# Local working files
+*.log
+.env
+.env.local
+
+*.md

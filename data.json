@@ -1,0 +1,55 @@
+{
+  "lines": {
+    "ISL": {
+      "name": "Island Line",
+      "color": { "light": "#0073BD", "dark": "#4FA8E0" },
+      "directions": ["Chai Wan", "Kennedy Town"]
+    },
+    "TWL": {
+      "name": "Tsuen Wan Line",
+      "color": { "light": "#ED1C24", "dark": "#FF5A60" },
+      "directions": ["Central"]
+    }
+  },
+  "stations": [
+    {
+      "name": "Sheung Wan",
+      "lines": ["ISL"],
+      "landmarks": [],
+      "exits": {}
+    },
+    {
+      "name": "Central",
+      "lines": ["ISL", "TWL"],
+      "landmarks": [],
+      "exits": {}
+    },
+    {
+      "name": "Tin Hau",
+      "lines": ["ISL"],
+      "landmarks": [],
+      "exits": {}
+    },
+    {
+      "name": "Causeway Bay",
+      "lines": ["ISL"],
+      "landmarks": [
+        { "name": "Times Square",   "exit": "F" },
+        { "name": "SOGO" },
+        { "name": "Russell Street", "exit": "F" }
+      ],
+      "exits": {
+        "F": {
+          "boards": { "ISL": ["front", "rear"] },
+          "notes": "from-memory; verify by riding"
+        }
+      }
+    },
+    {
+      "name": "Tai Koo",
+      "lines": ["ISL"],
+      "landmarks": [],
+      "exits": {}
+    }
+  ]
+}
