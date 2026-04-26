@@ -13,7 +13,9 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  /* Set font-family on :root so html computes Inter, not browser default (Times on mac). */
   :root {
+    font-family: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     --bg: #ffffff;
     --fg: #111111;
     /* --muted: gray-500 (#6b7280) on white = 4.83:1, passes WCAG AA.
@@ -41,7 +43,6 @@
     }
   }
   body {
-    font-family: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--fg);
     -webkit-font-smoothing: antialiased;
