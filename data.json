@@ -40,8 +40,7 @@
       ],
       "exits": {
         "F": {
-          "boards": { "ISL": ["front", "rear"] },
-          "notes": "from-memory; verify by riding"
+          "boards": { "ISL": ["front", "rear"] }
         }
       }
     },

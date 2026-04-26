@@ -12,3 +12,4 @@ sources/
 .env.local
 
 *.md
+.gstack/

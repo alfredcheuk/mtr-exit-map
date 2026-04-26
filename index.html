@@ -25,7 +25,6 @@
     --hairline: #f0f0f0;
     --highlight: #fef3c7;
     --chip-text: #ffffff;
-    --pdf-cue: #b45309;
     --default-accent: #0073BD;
     /* --line-XXX vars are injected at runtime from data.json */
     --accent: var(--default-accent);
@@ -39,7 +38,6 @@
       --hairline: #1f1f1f;
       --highlight: #42360e;
       --chip-text: #0a0a0a;
-      --pdf-cue: #fbbf24;
       --default-accent: #4FA8E0;
     }
   }
@@ -192,11 +190,6 @@
     font-weight: 400;
     margin-left: 6px;
   }
-  .pdf-only-cue {
-    font-size: 11px;
-    color: var(--pdf-cue);
-    margin-top: 4px;
-  }
   .search-trigger {
     position: fixed;
     bottom: 22px; right: 12px;
@@ -281,10 +274,13 @@
   }
   .data-error {
     padding: 32px 0;
-    color: var(--pdf-cue);
+    color: #b45309;
     font-size: 13px;
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
     line-height: 1.6;
+  }
+  @media (prefers-color-scheme: dark) {
+    .data-error { color: #fbbf24; }
   }
   .data-error h3 {
     font-family: inherit;
@@ -404,8 +400,8 @@ function getLandmarksForStation(stationName) {
 
 function normalizeBoard(b) {
   if (b == null) return null;
-  if (typeof b === 'string') return { position: b, car_hint: null, verified_at: null };
-  return { position: b.position, car_hint: b.car_hint || null, verified_at: b.verified_at || null };
+  if (typeof b === 'string') return { position: b, car_hint: null };
+  return { position: b.position, car_hint: b.car_hint || null };
 }
 
 function getResultsFor(stationName, lineCode, landmarkName) {
@@ -427,8 +423,7 @@ function getResultsFor(stationName, lineCode, landmarkName) {
       return {
         direction: directions[i] || ('Direction ' + (i + 1)),
         position: norm.position,
-        carHint: norm.car_hint,
-        verified: !!norm.verified_at
+        carHint: norm.car_hint
       };
     }).filter(Boolean);
   }
@@ -636,8 +631,7 @@ function renderResult(root) {
     row.className = 'result-row';
     const pos = r.position.charAt(0).toUpperCase() + r.position.slice(1);
     row.innerHTML =
-      '<div><div class="dir">→ ' + escapeHtml(r.direction) + '</div>' +
-      (r.verified ? '' : '<div class="pdf-only-cue">⚠ pdf-only</div>') + '</div>' +
+      '<div class="dir">→ ' + escapeHtml(r.direction) + '</div>' +
       '<div class="action">' + escapeHtml(pos) +
       (r.carHint ? '<span class="car-hint">(car ' + r.carHint + ')</span>' : '') + '</div>';
     root.appendChild(row);
