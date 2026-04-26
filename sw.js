@@ -1,7 +1,7 @@
 // Cache-first service worker.
 // IMPORTANT: bump CACHE_VERSION on every deploy. Without that the PWA serves
 // stale data forever.
-const CACHE_VERSION = "v15";
+const CACHE_VERSION = "v16";
 const CACHE_NAME = "mtr-exit-map-" + CACHE_VERSION;
 const ASSETS = [
   "./",

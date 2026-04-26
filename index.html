@@ -51,7 +51,11 @@
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
-    padding: 32px 22px;
+    padding:
+      calc(32px + env(safe-area-inset-top))
+      calc(22px + env(safe-area-inset-right))
+      calc(32px + env(safe-area-inset-bottom))
+      calc(22px + env(safe-area-inset-left));
     position: relative;
   }
   .top-mark, .station-line-tag, .result-sub, .search-context {
