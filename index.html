@@ -13,6 +13,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  h1 { margin: 0; font-size: inherit; font-weight: inherit; }
   /* Set font-family on :root so html computes Inter, not browser default (Times on mac). */
   :root {
     font-family: "Inter", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -528,7 +529,7 @@ function render() {
 }
 
 function renderStations(root) {
-  root.insertAdjacentHTML('beforeend', '<div class="top-mark">MTR Exit Map</div>');
+  root.insertAdjacentHTML('beforeend', '<h1 class="top-mark">MTR Exit Map</h1>');
   DATA.stations.forEach(s => root.appendChild(stationTile(s)));
   root.appendChild(searchTrigger());
 }
@@ -613,14 +614,14 @@ function renderResult(root) {
   }
   if (!result.exit) {
     root.insertAdjacentHTML('beforeend',
-      '<div class="result-title">' + escapeHtml(result.landmark) + '</div>' +
+      '<h1 class="result-title">' + escapeHtml(result.landmark) + '</h1>' +
       '<div class="result-sub">' + escapeHtml(result.station.toUpperCase()) + ' · ' +
       lineToneInline(result.line, lineName(result.line).toUpperCase()) + '</div>' +
       '<div class="empty">No exit assigned yet for this landmark.<div class="hint">Set the <code>exit</code> field in <code>stations[].landmarks</code>.</div></div>');
     return;
   }
   root.insertAdjacentHTML('beforeend',
-    '<div class="result-title">' + escapeHtml(result.landmark) + '</div>' +
+    '<h1 class="result-title">' + escapeHtml(result.landmark) + '</h1>' +
     '<div class="result-sub">' + escapeHtml(result.station.toUpperCase()) + ' · ' +
     lineToneInline(result.line, lineName(result.line).toUpperCase()) +
     ' · EXIT ' + escapeHtml(result.exit) + '</div>'
