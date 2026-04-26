@@ -2,53 +2,263 @@
   "lines": {
     "ISL": {
       "name": "Island Line",
-      "color": { "light": "#0073BD", "dark": "#4FA8E0" },
-      "directions": ["Chai Wan", "Kennedy Town"]
+      "color": {
+        "light": "#0073BD",
+        "dark": "#4FA8E0"
+      },
+      "directions": [
+        "Chai Wan",
+        "Kennedy Town"
+      ]
     },
     "TWL": {
       "name": "Tsuen Wan Line",
-      "color": { "light": "#ED1C24", "dark": "#FF5A60" },
-      "directions": ["Central"]
+      "color": {
+        "light": "#ED1C24",
+        "dark": "#FF5A60"
+      },
+      "directions": [
+        "Central"
+      ]
     }
   },
   "stations": [
     {
+      "code": "shw",
       "name": "Sheung Wan",
-      "lines": ["ISL"],
-      "landmarks": [],
-      "exits": {}
-    },
-    {
-      "name": "Central",
-      "lines": ["ISL", "TWL"],
-      "landmarks": [],
-      "exits": {}
-    },
-    {
-      "name": "Tin Hau",
-      "lines": ["ISL"],
-      "landmarks": [],
-      "exits": {}
-    },
-    {
-      "name": "Causeway Bay",
-      "lines": ["ISL"],
+      "lines": [
+        "ISL"
+      ],
       "landmarks": [
-        { "name": "Times Square",   "exit": "F" },
-        { "name": "SOGO" },
-        { "name": "Russell Street", "exit": "F" }
+        {
+          "name": "Wing Lok St",
+          "exit": "A"
+        },
+        {
+          "name": "Shun Tak",
+          "exit": "D"
+        },
+        {
+          "name": "COSCO Tower",
+          "exit": "E"
+        },
+        {
+          "name": "Infinitus Plaza",
+          "exit": "E"
+        }
       ],
       "exits": {
-        "F": {
-          "boards": { "ISL": ["front", "rear"] }
+        "A": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        },
+        "B": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        },
+        "D": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        },
+        "E": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
         }
       }
     },
     {
-      "name": "Tai Koo",
-      "lines": ["ISL"],
+      "code": "cen",
+      "name": "Central",
+      "lines": [
+        "ISL",
+        "TWL"
+      ],
       "landmarks": [],
       "exits": {}
+    },
+    {
+      "code": "tih",
+      "name": "Tin Hau",
+      "lines": [
+        "ISL"
+      ],
+      "landmarks": [],
+      "exits": {}
+    },
+    {
+      "code": "cab",
+      "name": "Causeway Bay",
+      "lines": [
+        "ISL"
+      ],
+      "landmarks": [
+        {
+          "name": "Times Square",
+          "exit": "A",
+          "name_zh": "時代廣場"
+        },
+        {
+          "name": "Sogo",
+          "exit": "D"
+        },
+        {
+          "name": "Hysan Place",
+          "exit": "F"
+        }
+      ],
+      "exits": {
+        "A": {
+          "boards": {
+            "ISL": [
+              "rear",
+              "front"
+            ]
+          }
+        },
+        "B": {
+          "boards": {
+            "ISL": [
+              "rear",
+              "front"
+            ]
+          }
+        },
+        "C": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        },
+        "D": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        },
+        "D1": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        },
+        "D2": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        },
+        "D3": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        },
+        "E": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        },
+        "F": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        },
+        "F1": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        },
+        "F2": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "code": "tak",
+      "name": "Tai Koo",
+      "lines": [
+        "ISL"
+      ],
+      "landmarks": [
+        {
+          "name": "Kornhill",
+          "exit": "A"
+        },
+        {
+          "name": "Cityplaza",
+          "exit": "D"
+        },
+        {
+          "name": "Aeon",
+          "exit": "C"
+        }
+      ],
+      "exits": {
+        "A": {
+          "boards": {
+            "ISL": [
+              "rear",
+              "front"
+            ]
+          }
+        },
+        "D": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        },
+        "C": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ]
+          }
+        }
+      }
     }
   ]
 }

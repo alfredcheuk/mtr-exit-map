@@ -3,8 +3,12 @@ node_modules/
 .vscode/
 .idea/
 
-# Local PDF sources from MTR (not deployed)
+# Local pipeline tooling (not deployed)
 sources/
+ingest/
+stations/
+reviewer.html
+data-old.json
 
 # Local working files
 *.log
