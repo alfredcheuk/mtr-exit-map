@@ -81,6 +81,10 @@
     font-family: inherit;
   }
   .row:last-of-type { border-bottom: none; }
+  /* When a .search-trigger button follows the rows (stations/landmarks resting),
+     :last-of-type matches the search-trigger instead of the last .row.
+     :has(+ .search-trigger) catches the row immediately before search-trigger. */
+  .row:has(+ .search-trigger) { border-bottom: none; }
   .row:active { transform: scale(0.99); transition: transform 0.1s; }
   .station-row .name { flex: 1; }
   .station-row .dot {
