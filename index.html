@@ -71,7 +71,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 22px 0;
+    padding: 22px 12px;
     border-bottom: 1px solid var(--hairline);
     border-left: 0; border-right: 0; border-top: 0;
     font-size: 19px;
@@ -80,7 +80,12 @@
     cursor: pointer;
     color: var(--fg);
     background: none;
-    width: 100%;
+    /* Extend horizontally with negative margin so the hover background reaches
+       past the content edge — keeps text/chip in place but gives the hover box
+       breathing room from row content. */
+    width: calc(100% + 24px);
+    margin-left: -12px;
+    margin-right: -12px;
     text-align: left;
     font-family: inherit;
   }
@@ -103,11 +108,16 @@
     .search-bar .clear-x:hover { color: var(--fg); }
   }
   .station-row .name { flex: 1; }
-  .station-row .dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  /* Single-line station tag — matches chip visuals but is non-interactive
+     (the parent row handles the click). */
+  .station-row .line-tag {
+    color: var(--chip-text);
     background: var(--default-accent);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
   }
   .station-row .chips { display: flex; gap: 6px; }
   .chip {
@@ -322,6 +332,142 @@
       transition: none;
     }
   }
+
+  /* Customize screen */
+  .top-mark-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .top-mark-row .top-mark { margin-bottom: 0; }
+  .gear {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: inherit;
+    line-height: 0;
+    padding: 14px;
+    margin: -14px;
+    position: relative;
+  }
+  .gear svg { width: 16px; height: 16px; display: block; }
+  @media (hover: hover) {
+    .gear:hover { color: var(--fg); }
+  }
+  .customize-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .customize-meta .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .customize-reset {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 12px 0 12px 12px;
+    margin: -12px 0;
+  }
+  .customize-reset.confirm { color: #b45309; }
+  @media (prefers-color-scheme: dark) {
+    .customize-reset.confirm { color: #fbbf24; }
+  }
+  .customize-counts {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .customize-hint {
+    font-size: 12px;
+    color: var(--muted);
+    opacity: 0.85;
+    margin-bottom: 8px;
+    line-height: 1.45;
+  }
+  .customize-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+  }
+  .customize-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 28px;
+    margin-bottom: 4px;
+  }
+  .customize-section-label:first-of-type { margin-top: 22px; }
+  .customize-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .customize-row:last-child { border-bottom: none; }
+  .customize-row .name {
+    flex: 1;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .customize-row button {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--fg);
+    padding: 10px;
+    margin: 0;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .customize-row button[aria-disabled="true"] {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .customize-row .move svg { width: 16px; height: 16px; }
+  .customize-row .fav svg { width: 20px; height: 20px; }
+  .customize-row .fav { color: var(--fg); }
+  .customize-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--hairline);
+    flex-shrink: 0;
+    margin: 0 2px;
+  }
+  .customize-empty {
+    padding: 24px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -352,6 +498,66 @@ function hl(text, q) {
   return escapeHtml(text.slice(0, idx))
     + '<span class="match-hl">' + escapeHtml(text.slice(idx, idx + q.length)) + '</span>'
     + escapeHtml(text.slice(idx + q.length));
+}
+
+// ---------- prefs ----------
+
+const PREFS_KEY = 'mtr-exit-prefs-v1';
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    const order = Array.isArray(parsed.order) ? parsed.order.filter(c => typeof c === 'string') : [];
+    const excluded = Array.isArray(parsed.excluded) ? parsed.excluded.filter(c => typeof c === 'string') : [];
+    return { order, excluded };
+  } catch (e) {
+    return null;
+  }
+}
+
+function savePrefs(prefs) {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch (e) {
+    console.warn('Failed to save prefs:', e);
+  }
+}
+
+function clearPrefs() {
+  try {
+    localStorage.removeItem(PREFS_KEY);
+  } catch (e) {
+    console.warn('Failed to clear prefs:', e);
+  }
+}
+
+// Pure: returns the home-screen station list given source data + prefs.
+function applyPrefs(stations, prefs) {
+  if (!prefs) return stations;
+  const byCode = new Map();
+  stations.forEach(s => { if (s.code) byCode.set(s.code, s); });
+  const excluded = new Set(prefs.excluded || []);
+  const seen = new Set();
+  const out = [];
+  (prefs.order || []).forEach(code => {
+    if (excluded.has(code)) return;
+    if (seen.has(code)) return;
+    const s = byCode.get(code);
+    if (s) { out.push(s); seen.add(code); }
+  });
+  // Defensive: stations missing from both order & excluded shouldn't occur
+  // (defaults push new stations to excluded), but guard for safety.
+  stations.forEach(s => {
+    if (!s.code) { out.push(s); return; }
+    if (seen.has(s.code)) return;
+    if (excluded.has(s.code)) return;
+    out.push(s);
+    seen.add(s.code);
+  });
+  return out;
 }
 
 // ---------- line config ----------
@@ -496,11 +702,15 @@ function transitionTo(updates) {
 
 function syncUrl() {
   const params = new URLSearchParams();
-  if (state.screen === 'landmarks' || state.screen === 'result') {
-    params.set('s', state.station);
-    params.set('l', state.line);
+  if (state.screen === 'customize') {
+    params.set('p', 'customize');
+  } else {
+    if (state.screen === 'landmarks' || state.screen === 'result') {
+      params.set('s', state.station);
+      params.set('l', state.line);
+    }
+    if (state.screen === 'result') params.set('lm', state.landmark);
   }
-  if (state.screen === 'result') params.set('lm', state.landmark);
   const newUrl = params.toString() ? '?' + params : './';
   if (location.search !== ('?' + params)) {
     history.pushState(null, '', newUrl);
@@ -509,6 +719,9 @@ function syncUrl() {
 
 function readUrl() {
   const params = new URLSearchParams(location.search);
+  if (params.get('p') === 'customize') {
+    return { screen: 'customize', station: null, line: null, landmark: null };
+  }
   const s = params.get('s'), l = params.get('l'), lm = params.get('lm');
   if (lm && s && l) return { screen: 'result', station: s, line: l, landmark: lm };
   if (s && l) return { screen: 'landmarks', station: s, line: l, landmark: null };
@@ -528,12 +741,32 @@ function render() {
   if (state.screen === 'stations') return renderStations(app);
   if (state.screen === 'landmarks') return renderLandmarks(app);
   if (state.screen === 'result') return renderResult(app);
+  if (state.screen === 'customize') return renderCustomize(app);
 }
 
 function renderStations(root) {
-  root.insertAdjacentHTML('beforeend', '<h1 class="top-mark">MTR Exit Map</h1>');
-  DATA.stations.forEach(s => root.appendChild(stationTile(s)));
+  const header = document.createElement('div');
+  header.className = 'top-mark-row';
+  header.innerHTML = '<h1 class="top-mark">MTR Exit Map</h1>' +
+    '<button class="gear" type="button" aria-label="Customize favorites">' + gearSvg() + '</button>';
+  header.querySelector('.gear').onclick = () => transitionTo({ screen: 'customize', station: null, line: null, landmark: null, searching: false, query: '' });
+  root.appendChild(header);
+  const prefs = loadPrefs();
+  const ordered = applyPrefs(DATA.stations, prefs);
+  if (ordered.length === 0) {
+    root.insertAdjacentHTML('beforeend',
+      '<div class="empty">No favorite stations yet.<div class="hint">Tap the ⚙ above to pick favorites.</div></div>');
+  } else {
+    ordered.forEach(s => root.appendChild(stationTile(s)));
+  }
   root.appendChild(searchTrigger());
+}
+
+function gearSvg() {
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<circle cx="12" cy="12" r="3"/>' +
+    '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' +
+    '</svg>';
 }
 
 function stationTile(s, q) {
@@ -561,10 +794,12 @@ function stationTile(s, q) {
   }
   const tile = document.createElement('button');
   tile.className = 'row station-row';
-  const dotColor = s.lines[0] ? ('var(--line-' + s.lines[0] + ')') : 'var(--default-accent)';
+  const code = s.lines[0];
+  const tagBg = code ? ('var(--line-' + code + ')') : 'var(--default-accent)';
+  tile.setAttribute('aria-label', s.name + (code ? ' via ' + lineName(code) : ''));
   tile.innerHTML = '<span class="name">' + hl(s.name, q) + '</span>' +
-    '<span class="dot" aria-hidden="true" style="background: ' + dotColor + ';"></span>';
-  tile.onclick = () => transitionTo({ screen: 'landmarks', station: s.name, line: s.lines[0], searching: false, query: '' });
+    '<span class="line-tag" aria-hidden="true" style="background: ' + tagBg + ';">' + escapeHtml(code || '') + '</span>';
+  tile.onclick = () => transitionTo({ screen: 'landmarks', station: s.name, line: code, searching: false, query: '' });
   return tile;
 }
 
@@ -652,6 +887,299 @@ function searchTrigger() {
   btn.innerHTML = '<span class="glyph" aria-hidden="true">⌕</span>Search';
   btn.onclick = () => transitionTo({ searching: true, query: '' });
   return btn;
+}
+
+// ---------- customize screen ----------
+
+function upArrowSvg() {
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 14 12 8 18 14"/></svg>';
+}
+function downArrowSvg() {
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 10 12 16 18 10"/></svg>';
+}
+function starFilledSvg() {
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';
+}
+function starOutlineSvg() {
+  return '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';
+}
+
+function flipReorder(container, mutate) {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const before = new Map();
+  if (!reduceMotion) {
+    Array.from(container.querySelectorAll('.customize-row')).forEach(r => {
+      before.set(r.dataset.code, r.getBoundingClientRect());
+    });
+  }
+  mutate();
+  if (reduceMotion) return;
+  Array.from(container.querySelectorAll('.customize-row')).forEach(r => {
+    const old = before.get(r.dataset.code);
+    if (!old) return;
+    const dy = old.top - r.getBoundingClientRect().top;
+    if (!dy || !r.animate) return;
+    r.animate(
+      [{ transform: 'translateY(' + dy + 'px)' }, { transform: 'translateY(0)' }],
+      { duration: 180, easing: 'ease-out' }
+    );
+  });
+}
+
+function renderCustomize(root) {
+  const stations = DATA.stations;
+  const codes = stations.map(s => s.code).filter(Boolean);
+  const validCodes = new Set(codes);
+  const byCode = new Map();
+  stations.forEach(s => { if (s.code) byCode.set(s.code, s); });
+
+  // Materialize working prefs from storage (defaults: all stations favorited).
+  let prefs;
+  const stored = loadPrefs();
+  if (stored) {
+    prefs = {
+      order: stored.order.filter(c => validCodes.has(c)),
+      excluded: stored.excluded.filter(c => validCodes.has(c))
+    };
+  } else {
+    prefs = { order: codes.slice(), excluded: [] };
+  }
+
+  // Back row with screen title
+  const back = document.createElement('button');
+  back.className = 'back-row';
+  back.setAttribute('aria-label', 'Back to stations');
+  back.innerHTML = '<svg class="back-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="20" y1="12" x2="4" y2="12"/><polyline points="10 6 4 12 10 18"/></svg>' +
+    '<span class="station-line-tag">FAVORITES · OTHER STATIONS</span>';
+  back.onclick = () => transitionTo({ screen: 'stations', station: null, line: null, landmark: null, searching: false, query: '' });
+  root.appendChild(back);
+
+  // Counts + Reset row
+  const meta = document.createElement('div');
+  meta.className = 'customize-meta';
+  const counts = document.createElement('span');
+  counts.className = 'label';
+  meta.appendChild(counts);
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.className = 'customize-reset';
+  resetBtn.textContent = 'Reset';
+  meta.appendChild(resetBtn);
+  root.appendChild(meta);
+
+  // 8-favorites hint
+  const hint = document.createElement('div');
+  hint.className = 'customize-hint';
+  hint.textContent = 'Heads up: 8 is about all that fits comfortably on the home screen.';
+  hint.hidden = true;
+  root.appendChild(hint);
+
+  // Live region (visually hidden)
+  const status = document.createElement('div');
+  status.className = 'customize-status';
+  status.setAttribute('aria-live', 'polite');
+  status.setAttribute('role', 'status');
+  root.appendChild(status);
+
+  // FAVORITES section
+  const favLabelEl = document.createElement('div');
+  favLabelEl.className = 'customize-section-label';
+  favLabelEl.textContent = 'Favorites';
+  root.appendChild(favLabelEl);
+  const favList = document.createElement('div');
+  favList.className = 'customize-favorites';
+  root.appendChild(favList);
+
+  // OTHER STATIONS section
+  const otherLabelEl = document.createElement('div');
+  otherLabelEl.className = 'customize-section-label';
+  otherLabelEl.textContent = 'Other stations';
+  root.appendChild(otherLabelEl);
+  const otherList = document.createElement('div');
+  otherList.className = 'customize-others';
+  root.appendChild(otherList);
+
+  let resetTimer = null;
+  let resetArmed = false;
+
+  function announce(msg) { status.textContent = msg; }
+  function persist() { savePrefs(prefs); }
+  function nameOf(code) { return (byCode.get(code) || { name: code }).name; }
+
+  function buildFavRow(code) {
+    const s = byCode.get(code);
+    if (!s) return null;
+    const row = document.createElement('div');
+    row.className = 'customize-row';
+    row.dataset.code = code;
+    row.innerHTML =
+      '<span class="name">' + escapeHtml(s.name) + '</span>' +
+      '<button type="button" class="move move-up" aria-label="Move ' + escapeHtml(s.name) + ' up">' + upArrowSvg() + '</button>' +
+      '<button type="button" class="move move-down" aria-label="Move ' + escapeHtml(s.name) + ' down">' + downArrowSvg() + '</button>' +
+      '<span class="customize-divider" aria-hidden="true"></span>' +
+      '<button type="button" class="fav" aria-pressed="true" aria-label="Unfavorite ' + escapeHtml(s.name) + '">' + starFilledSvg() + '</button>';
+    row.querySelector('.move-up').onclick = () => moveUp(code);
+    row.querySelector('.move-down').onclick = () => moveDown(code);
+    row.querySelector('.fav').onclick = () => unfavorite(code);
+    return row;
+  }
+
+  function buildOtherRow(code) {
+    const s = byCode.get(code);
+    if (!s) return null;
+    const row = document.createElement('div');
+    row.className = 'customize-row';
+    row.dataset.code = code;
+    row.innerHTML =
+      '<span class="name">' + escapeHtml(s.name) + '</span>' +
+      '<button type="button" class="fav" aria-pressed="false" aria-label="Favorite ' + escapeHtml(s.name) + '">' + starOutlineSvg() + '</button>';
+    row.querySelector('.fav').onclick = () => favorite(code);
+    return row;
+  }
+
+  function refreshFavArrows() {
+    const rows = Array.from(favList.querySelectorAll('.customize-row'));
+    rows.forEach((row, i) => {
+      const up = row.querySelector('.move-up');
+      const down = row.querySelector('.move-down');
+      if (up) up.setAttribute('aria-disabled', i === 0 ? 'true' : 'false');
+      if (down) down.setAttribute('aria-disabled', i === rows.length - 1 ? 'true' : 'false');
+    });
+  }
+
+  function refreshMeta() {
+    const f = prefs.order.length;
+    const o = prefs.excluded.length;
+    counts.textContent = f + ' ' + (f === 1 ? 'favorite' : 'favorites') + ' · ' +
+      o + ' ' + (o === 1 ? 'other' : 'others');
+    hint.hidden = f < 8;
+  }
+
+  function alphaSorted(codeList) {
+    return codeList.slice().sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
+  }
+
+  function renderFavorites() {
+    favList.innerHTML = '';
+    if (prefs.order.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'customize-empty';
+      empty.textContent = 'No favorites.';
+      favList.appendChild(empty);
+      return;
+    }
+    prefs.order.forEach(code => {
+      const row = buildFavRow(code);
+      if (row) favList.appendChild(row);
+    });
+    refreshFavArrows();
+  }
+
+  function renderOthers() {
+    otherList.innerHTML = '';
+    const sorted = alphaSorted(prefs.excluded);
+    if (sorted.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'customize-empty';
+      empty.textContent = 'All stations favorited.';
+      otherList.appendChild(empty);
+      return;
+    }
+    sorted.forEach(code => {
+      const row = buildOtherRow(code);
+      if (row) otherList.appendChild(row);
+    });
+  }
+
+  function moveUp(code) {
+    const idx = prefs.order.indexOf(code);
+    if (idx <= 0) return;
+    flipReorder(favList, () => {
+      const arr = prefs.order;
+      [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+      const moving = favList.querySelector('[data-code="' + code + '"]');
+      const before = favList.querySelector('[data-code="' + arr[idx] + '"]');
+      if (moving && before) favList.insertBefore(moving, before);
+      refreshFavArrows();
+    });
+    persist();
+    announce('Moved ' + nameOf(code) + ' up · position ' + idx + ' of ' + prefs.order.length);
+  }
+
+  function moveDown(code) {
+    const idx = prefs.order.indexOf(code);
+    if (idx === -1 || idx >= prefs.order.length - 1) return;
+    flipReorder(favList, () => {
+      const arr = prefs.order;
+      [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+      const moving = favList.querySelector('[data-code="' + code + '"]');
+      const after = favList.querySelector('[data-code="' + arr[idx] + '"]');
+      if (moving && after) favList.insertBefore(moving, after.nextSibling);
+      refreshFavArrows();
+    });
+    persist();
+    announce('Moved ' + nameOf(code) + ' down · position ' + (idx + 2) + ' of ' + prefs.order.length);
+  }
+
+  function unfavorite(code) {
+    const idx = prefs.order.indexOf(code);
+    if (idx === -1) return;
+    prefs.order.splice(idx, 1);
+    if (!prefs.excluded.includes(code)) prefs.excluded.push(code);
+    persist();
+    renderFavorites();
+    renderOthers();
+    refreshMeta();
+    announce('Removed ' + nameOf(code) + ' from favorites');
+  }
+
+  function favorite(code) {
+    const idx = prefs.excluded.indexOf(code);
+    if (idx !== -1) prefs.excluded.splice(idx, 1);
+    if (!prefs.order.includes(code)) prefs.order.push(code);
+    persist();
+    renderFavorites();
+    renderOthers();
+    refreshMeta();
+    announce('Added ' + nameOf(code) + ' to favorites');
+  }
+
+  function disarmReset() {
+    if (resetTimer) clearTimeout(resetTimer);
+    resetTimer = null;
+    resetArmed = false;
+    resetBtn.classList.remove('confirm');
+    resetBtn.removeAttribute('aria-pressed');
+    resetBtn.textContent = 'Reset';
+  }
+
+  function armReset() {
+    resetArmed = true;
+    resetBtn.classList.add('confirm');
+    resetBtn.setAttribute('aria-pressed', 'true');
+    resetBtn.textContent = 'Tap again to confirm';
+    resetTimer = setTimeout(disarmReset, 3000);
+  }
+
+  resetBtn.onclick = () => {
+    if (!resetArmed) { armReset(); return; }
+    if (resetTimer) clearTimeout(resetTimer);
+    resetTimer = null;
+    resetArmed = false;
+    clearPrefs();
+    prefs = { order: codes.slice(), excluded: [] };
+    resetBtn.classList.remove('confirm');
+    resetBtn.removeAttribute('aria-pressed');
+    resetBtn.textContent = 'Reset';
+    renderFavorites();
+    renderOthers();
+    refreshMeta();
+    announce('Customizations reset');
+  };
+
+  renderFavorites();
+  renderOthers();
+  refreshMeta();
 }
 
 function makeSearchBar() {
