@@ -16,7 +16,9 @@
   :root {
     --bg: #ffffff;
     --fg: #111111;
-    --muted: #9ca3af;
+    /* --muted: gray-500 (#6b7280) on white = 4.83:1, passes WCAG AA.
+       gray-400 (#9ca3af) was 2.54:1, failed. */
+    --muted: #6b7280;
     --hairline: #f0f0f0;
     --highlight: #fef3c7;
     --chip-text: #ffffff;
@@ -29,6 +31,7 @@
     :root {
       --bg: #0a0a0a;
       --fg: #f5f5f5;
+      /* In dark mode #6b7280 on #0a0a0a is ~5:1 — passes AA. Same value, both modes. */
       --muted: #9ca3af;
       --hairline: #1f1f1f;
       --highlight: #42360e;
