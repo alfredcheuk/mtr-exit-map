@@ -89,8 +89,70 @@
         "ISL",
         "TWL"
       ],
-      "landmarks": [],
-      "exits": {}
+      "landmarks": [
+        {
+          "name": "Exchange Square",
+          "exit": "A"
+        },
+        {
+          "name": "Landmark",
+          "exit": "G"
+        },
+        {
+          "name": "Theatre Lane",
+          "exit": "D"
+        },
+        {
+          "name": "Alexandra House",
+          "exit": "H"
+        }
+      ],
+      "exits": {
+        "A": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "front"
+            ],
+            "TWL": [
+              "front"
+            ]
+          }
+        },
+        "G": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "rear"
+            ],
+            "TWL": [
+              "front"
+            ]
+          }
+        },
+        "D": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "rear"
+            ],
+            "TWL": [
+              "front"
+            ]
+          }
+        },
+        "H": {
+          "boards": {
+            "ISL": [
+              "front",
+              "rear"
+            ],
+            "TWL": [
+              "front"
+            ]
+          }
+        }
+      }
     },
     {
       "code": "tih",
@@ -98,8 +160,22 @@
       "lines": [
         "ISL"
       ],
-      "landmarks": [],
-      "exits": {}
+      "landmarks": [
+        {
+          "name": "Everywhere",
+          "exit": "A"
+        }
+      ],
+      "exits": {
+        "A": {
+          "boards": {
+            "ISL": [
+              "middle",
+              "middle"
+            ]
+          }
+        }
+      }
     },
     {
       "code": "cab",
