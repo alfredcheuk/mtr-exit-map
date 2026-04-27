@@ -160,9 +160,12 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    /* enlarged tap area: 14+22+14 = 50px tall, ≥44px ✓ */
+    /* enlarged tap area: 14+22+14 = 50px tall, ≥44px ✓
+       Negative top margin cancels the top padding for layout (matching the
+       trick used on .gear) so the icon visually aligns with the home page's
+       top-mark title row instead of sitting 14px lower. */
     padding: 14px 0;
-    margin-bottom: 14px;
+    margin: -14px 0 22px 0;
     background: none;
     border: 0;
     cursor: pointer;
