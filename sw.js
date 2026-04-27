@@ -1,7 +1,7 @@
 // Cache-first service worker.
 // IMPORTANT: bump CACHE_VERSION on every deploy. Without that the PWA serves
 // stale data forever.
-const CACHE_VERSION = "v18";
+const CACHE_VERSION = "v19";
 const CACHE_NAME = "mtr-exit-map-" + CACHE_VERSION;
 const ASSETS = [
   "./",
@@ -10,7 +10,9 @@ const ASSETS = [
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
+  "./favicon-32.png",
   "./apple-touch-icon.png",
+  "./og-image.png",
 ];
 
 self.addEventListener("install", (e) => {
